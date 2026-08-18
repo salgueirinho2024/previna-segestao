@@ -1,4 +1,4 @@
-export type Role = "DONO" | "TECNICO" | "ASSISTENTE";
+export type Role = "TECNICO" | "ASSISTENTE";
 
 export type SessionUser = {
   id: string;
@@ -8,7 +8,6 @@ export type SessionUser = {
 };
 
 export const ROLE_LABEL: Record<Role, string> = {
-  DONO: "Dono",
   TECNICO: "Técnico de Segurança",
   ASSISTENTE: "Assistente",
 };

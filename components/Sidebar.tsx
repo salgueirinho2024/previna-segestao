@@ -10,14 +10,20 @@ import {
   Building2,
   CalendarCheck2,
   ListChecks,
+  Users,
+  FileCheck2,
+  Settings,
   LogOut,
 } from "lucide-react";
 
 const NAV = [
-  { href: "/dashboard", label: "Painel", icon: LayoutDashboard },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/empresas", label: "Empresas", icon: Building2 },
+  { href: "/tarefas", label: "Atividades", icon: ListChecks },
+  { href: "/funcionarios", label: "Funcionários", icon: Users },
+  { href: "/documentos", label: "Documentos", icon: FileCheck2 },
   { href: "/visitas", label: "Visitas", icon: CalendarCheck2 },
-  { href: "/tarefas", label: "Tarefas", icon: ListChecks },
+  { href: "/configuracoes", label: "Configurações", icon: Settings },
 ];
 
 export default function Sidebar({ user }: { user: SessionUser }) {
@@ -26,10 +32,10 @@ export default function Sidebar({ user }: { user: SessionUser }) {
   return (
     <aside className="w-64 shrink-0 bg-pine text-white flex flex-col h-screen sticky top-0">
       <div className="flex items-center gap-2.5 px-5 h-16 border-b border-pine-line">
-        <Image src="/icons/icon-192.png" alt="Previna" width={32} height={32} className="rounded-lg" />
+        <Image src="/icons/icon-192.png" alt="Previna-Se" width={32} height={32} className="rounded-lg" />
         <div>
-          <p className="font-display text-sm font-medium leading-none">Previna</p>
-          <p className="text-[10px] text-mint/70 mt-0.5 tracking-wide uppercase">Se Gestão</p>
+          <p className="font-display text-sm font-medium leading-none">Previna-Se</p>
+          <p className="text-[10px] text-mint/70 mt-0.5 tracking-wide uppercase">Gestão</p>
         </div>
       </div>
 

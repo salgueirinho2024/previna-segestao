@@ -22,12 +22,12 @@ export default function LoginPage() {
           }}
         />
         <div className="relative flex items-center gap-3">
-          <Image src="/icons/icon-192.png" alt="Previna" width={40} height={40} className="rounded-xl" />
-          <span className="font-display font-medium text-lg tracking-tight">Previna</span>
+          <Image src="/icons/icon-192.png" alt="Previna-Se" width={40} height={40} className="rounded-xl" />
+          <span className="font-display font-medium text-lg tracking-tight">Previna-Se</span>
         </div>
 
         <div className="relative max-w-md">
-          <p className="text-xs uppercase tracking-[0.2em] text-mint/80 mb-4">Se Gestão</p>
+          <p className="text-xs uppercase tracking-[0.2em] text-mint/80 mb-4">Gestão</p>
           <h1 className="font-display text-4xl leading-[1.1] mb-5">
             Nenhuma visita vence sem você saber.
           </h1>
@@ -37,15 +37,15 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <p className="relative text-xs text-white/40 font-mono-ui">Previna © {new Date().getFullYear()}</p>
+        <p className="relative text-xs text-white/40 font-mono-ui">Previna-Se © {new Date().getFullYear()}</p>
       </div>
 
       {/* Formulário */}
       <div className="flex items-center justify-center p-8 bg-background">
         <div className="w-full max-w-sm">
           <div className="lg:hidden flex items-center gap-3 mb-8">
-            <Image src="/icons/icon-192.png" alt="Previna" width={40} height={40} className="rounded-xl" />
-            <span className="font-display font-medium text-lg">Previna</span>
+            <Image src="/icons/icon-192.png" alt="Previna-Se" width={40} height={40} className="rounded-xl" />
+            <span className="font-display font-medium text-lg">Previna-Se</span>
           </div>
 
           <h2 className="font-display text-2xl mb-1 text-pine">Entrar</h2>
@@ -96,9 +96,6 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="text-xs text-muted mt-8 font-mono-ui">
-            Diego · Thiago · Tawane
-          </p>
         </div>
       </div>
     </div>

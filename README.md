@@ -1,8 +1,8 @@
-# Previna - Se Gestão
+# Previna-Se Gestão
 
 Sistema de gestão para consultoria de segurança do trabalho: controle de visitas
-(histórico, vencimento e alertas), atribuição de tarefas por técnico, e 3 logins
-(Diego - dono, Thiago - técnico, Tawane - assistente).
+(histórico, vencimento e alertas) e atribuição de tarefas por técnico, com login
+por perfil (Técnico de Segurança / Assistente).
 
 Feito em Next.js 16 + Tailwind, banco Neon (Postgres), visual inspirado no Pipefy
 (kanban de visitas). Funciona como site e como PWA instalável — pronta para virar
@@ -16,15 +16,18 @@ APK com Capacitor (passo a passo abaixo).
 2. No painel do projeto, vá em **Connection Details** e copie a **connection string**
    (algo como `postgresql://usuario:senha@ep-xxxx.neon.tech/neondb?sslmode=require`).
 3. Abra o **SQL Editor** do Neon, cole o conteúdo do arquivo `db/schema.sql` deste
-   projeto e rode. Isso cria as tabelas (`companies`, `visits`, `tasks`, `users`)
-   e já cadastra os 3 logins iniciais.
+   projeto e rode. Isso cria as tabelas (`companies`, `visits`, `tasks`, `users`).
 
-**Logins iniciais** (troque a senha depois de entrar, se quiser adicionar essa tela):
-| Usuário | E-mail                | Senha        |
-|---------|------------------------|--------------|
-| Diego   | diego@previna.com      | previna123   |
-| Thiago  | thiago@previna.com     | previna123   |
-| Tawane  | tawane@previna.com     | previna123   |
+**Criar o primeiro usuário:**
+```bash
+node -e "console.log(require('bcryptjs').hashSync('SUA_SENHA', 10))"
+```
+Copie o hash gerado e rode no SQL Editor do Neon:
+```sql
+insert into users (name, email, password_hash, role) values
+  ('Nome Sobrenome', 'email@dominio.com', 'HASH_GERADO_ACIMA', 'TECNICO');
+```
+(troque `role` para `ASSISTENTE` se for o caso).
 
 ## 2. Rodar localmente
 
@@ -57,13 +60,13 @@ Acesse http://localhost:3000 — vai redirecionar pro login.
 
 ## 4. Gerar o APK (site empacotado, via Capacitor)
 
-Como combinamos, o app mobile é o mesmo sistema web empacotado — mesma tela,
-mesmos dados, um único lugar pra manter. Depois que o site estiver publicado
-(passo 3), com o Android Studio instalado na sua máquina:
+O app mobile é o mesmo sistema web empacotado — mesma tela, mesmos dados, um
+único lugar pra manter. Depois que o site estiver publicado (passo 3), com o
+Android Studio instalado na sua máquina:
 
 ```bash
 npm install -D @capacitor/core @capacitor/cli @capacitor/android
-npx cap init "Previna" "com.previna.gestao" --web-dir=out
+npx cap init "Previna-Se" "com.previnase.gestao" --web-dir=out
 ```
 
 No `capacitor.config.ts` gerado, aponte pro site publicado em vez de arquivos
@@ -72,8 +75,8 @@ APK a cada mudança):
 
 ```ts
 const config = {
-  appId: "com.previna.gestao",
-  appName: "Previna",
+  appId: "com.previnase.gestao",
+  appName: "Previna-Se",
   server: { url: "https://SEU-DOMINIO-NA-VERCEL.vercel.app", cleartext: false },
 };
 export default config;
@@ -86,8 +89,8 @@ npx cap sync
 npx cap open android
 ```
 Isso abre o Android Studio — lá você gera o APK (Build > Build Bundle(s) / APK(s) > Build APK(s)).
-Os ícones que você mandou já estão em `public/icons/` e no `manifest.json`, então
-o app já nasce com a marca certa.
+Os ícones já estão em `public/icons/` e no `manifest.json`, então o app já nasce
+com a marca certa.
 
 ## 5. Estrutura do projeto
 
@@ -103,14 +106,14 @@ lib/
   db.ts               conexão com o Neon
   auth.ts             sessão (cookie assinado), login
   data.ts             consultas ao banco + regras de urgência/vencimento
-db/schema.sql          schema do banco + usuários iniciais
-public/icons/          suas logos, já nos tamanhos certos pro PWA
+db/schema.sql          schema do banco
+public/icons/          logos, já nos tamanhos certos pro PWA
 public/manifest.json   configuração do app instalável
 ```
 
 ## 6. O que já funciona
 
-- Login com os 3 perfis (Diego, Thiago, Tawane), sessão via cookie.
+- Login por perfil (Técnico de Segurança / Assistente), sessão via cookie.
 - Cadastro de empresas com periodicidade de retorno configurável.
 - Agendamento de visitas com responsável, histórico completo, e campo
   "o que foi feito" ao concluir.
@@ -118,8 +121,7 @@ public/manifest.json   configuração do app instalável
   (laranja), no prazo (verde) — calculado a partir da data agendada, sem
   precisar de nenhuma tarefa manual de "gerar alerta".
 - Kanban de visitas (Agendada → Em andamento → Concluída), como no Pipefy.
-- Atribuição de tarefas por pessoa (ex: "Thiago — avaliação de ruído na
-  Empresa X"), com prazo e status.
+- Atribuição de tarefas por pessoa e por empresa, com prazo e status.
 
 ## 7. Próximos passos sugeridos (não incluídos ainda)
 
@@ -127,4 +129,4 @@ public/manifest.json   configuração do app instalável
 - Upload de laudos/relatórios em cada visita.
 - Edição/exclusão de empresas e visitas (hoje o fluxo cobre criar e avançar
   status; dá pra adicionar telas de edição rapidamente em cima do que já existe).
-- Tela de troca de senha para os 3 usuários.
+- Tela de gestão de usuários (criar/editar/trocar senha) direto pelo sistema.

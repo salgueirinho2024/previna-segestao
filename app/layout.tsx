@@ -10,7 +10,7 @@ import "./globals.css";
 import RegisterSW from "@/components/RegisterSW";
 
 export const metadata: Metadata = {
-  title: "Previna - Se Gestão",
+  title: "Previna-Se Gestão",
   description: "Gestão de visitas e tarefas de segurança do trabalho",
   manifest: "/manifest.json",
   icons: {
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Previna",
+    title: "Previna-Se",
   },
 };
 

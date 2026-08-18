@@ -1,10 +1,19 @@
 import { sql } from "./db";
-import type { Company, Task, UserRow, Visit } from "./types";
+import type {
+  Company,
+  Task,
+  UserRow,
+  Visit,
+  Employee,
+  DocumentChecklistItem,
+  CompanyDocument,
+  DocumentStatus,
+} from "./types";
 
 // ---------- Users ----------
 export async function listUsers(): Promise<UserRow[]> {
   const rows = await sql`select id, name, email, role from users order by
-    case role when 'DONO' then 0 when 'TECNICO' then 1 else 2 end, name`;
+    case role when 'TECNICO' then 0 else 1 end, name`;
   return rows as UserRow[];
 }
 
@@ -135,6 +144,80 @@ export async function createTask(data: {
 
 export async function updateTaskStatus(id: string, status: string) {
   await sql`update tasks set status = ${status} where id = ${id}`;
+}
+
+// ---------- Employees (Funcionários) ----------
+export async function listEmployees(): Promise<Employee[]> {
+  const rows = await sql`
+    select e.*, c.name as company_name
+    from employees e
+    join companies c on c.id = e.company_id
+    order by c.name asc, e.name asc
+  `;
+  return rows as Employee[];
+}
+
+export async function listEmployeesByCompany(companyId: string): Promise<Employee[]> {
+  const rows = await sql`
+    select * from employees where company_id = ${companyId} order by name asc
+  `;
+  return rows as Employee[];
+}
+
+export async function createEmployee(data: {
+  company_id: string;
+  name: string;
+  role_title?: string;
+  admission_date?: string;
+  notes?: string;
+}) {
+  const rows = await sql`
+    insert into employees (company_id, name, role_title, admission_date, notes)
+    values (${data.company_id}, ${data.name}, ${data.role_title || null},
+            ${data.admission_date || null}, ${data.notes || null})
+    returning id
+  `;
+  return rows[0].id as string;
+}
+
+export async function deleteEmployee(id: string) {
+  await sql`delete from employees where id = ${id}`;
+}
+
+// ---------- Documentos (checklist por empresa) ----------
+export async function listDocumentChecklistItems(): Promise<DocumentChecklistItem[]> {
+  const rows = await sql`select * from document_checklist_items order by sort_order asc`;
+  return rows as DocumentChecklistItem[];
+}
+
+export async function listCompanyDocuments(): Promise<CompanyDocument[]> {
+  const rows = await sql`select * from company_documents`;
+  return rows as CompanyDocument[];
+}
+
+export async function listCompanyDocumentsByCompany(companyId: string): Promise<CompanyDocument[]> {
+  const rows = await sql`select * from company_documents where company_id = ${companyId}`;
+  return rows as CompanyDocument[];
+}
+
+const NEXT_STATUS: Record<DocumentStatus, DocumentStatus> = {
+  PENDENTE: "OK",
+  OK: "OBSERVACAO",
+  OBSERVACAO: "PENDENTE",
+};
+
+export async function cycleCompanyDocumentStatus(companyId: string, itemKey: string) {
+  const rows = await sql`
+    select status from company_documents where company_id = ${companyId} and item_key = ${itemKey} limit 1
+  `;
+  const current = (rows[0]?.status as DocumentStatus) ?? "PENDENTE";
+  const next = NEXT_STATUS[current];
+  await sql`
+    insert into company_documents (company_id, item_key, status, updated_at)
+    values (${companyId}, ${itemKey}, ${next}, now())
+    on conflict (company_id, item_key) do update set status = ${next}, updated_at = now()
+  `;
+  return next;
 }
 
 // ---------- Urgency helpers ----------

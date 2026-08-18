@@ -3,11 +3,23 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Plus, MapPin, Phone, User as UserIcon } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import UrgencyBadge from "@/components/UrgencyBadge";
-import { getCompany, listVisitsByCompany, listTasksByCompany, listUsers, visitUrgency, taskUrgency, daysUntil } from "@/lib/data";
+import DocStatusCell from "@/components/DocStatusCell";
+import {
+  getCompany,
+  listVisitsByCompany,
+  listTasksByCompany,
+  listUsers,
+  listDocumentChecklistItems,
+  listCompanyDocumentsByCompany,
+  visitUrgency,
+  taskUrgency,
+  daysUntil,
+} from "@/lib/data";
 import { formatDatePt } from "@/lib/format";
 import VisitStatusForm from "@/components/VisitStatusForm";
 import QuickTaskForm from "@/components/QuickTaskForm";
 import TaskStatusToggle from "@/components/TaskStatusToggle";
+import type { DocumentStatus } from "@/lib/types";
 
 export default async function EmpresaDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -15,11 +27,16 @@ export default async function EmpresaDetailPage({ params }: { params: Promise<{ 
   const company = await getCompany(id);
   if (!company) notFound();
 
-  const [visits, tasks, users] = await Promise.all([
+  const [visits, tasks, users, checklistItems, companyDocs] = await Promise.all([
     listVisitsByCompany(id),
     listTasksByCompany(id),
     listUsers(),
+    listDocumentChecklistItems(),
+    listCompanyDocumentsByCompany(id),
   ]);
+
+  const docStatusMap = new Map<string, DocumentStatus>();
+  for (const d of companyDocs) docStatusMap.set(d.item_key, d.status);
 
   const nextVisit = visits
     .filter((v) => v.status !== "CONCLUIDA")
@@ -133,6 +150,28 @@ export default async function EmpresaDetailPage({ params }: { params: Promise<{ 
                 ))}
               </ul>
             )}
+          </section>
+
+          {/* Checklist de documentos */}
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-display text-base text-pine">Checklist de documentos</h2>
+              <Link href="/documentos" className="text-xs font-medium text-brand-green-dark hover:text-brand-green transition">
+                Ver todas as empresas
+              </Link>
+            </div>
+            <div className="rounded-xl border border-border bg-surface divide-y divide-border overflow-hidden">
+              {checklistItems.map((item) => (
+                <div key={item.id} className="flex items-center justify-between gap-4 px-5 py-2.5">
+                  <p className="text-sm text-foreground">{item.label}</p>
+                  <DocStatusCell
+                    companyId={company.id}
+                    itemKey={item.key}
+                    status={docStatusMap.get(item.key) ?? "PENDENTE"}
+                  />
+                </div>
+              ))}
+            </div>
           </section>
         </div>
 

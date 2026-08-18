@@ -1,6 +1,6 @@
 {
-  "name": "Previna - Se Gestão",
-  "short_name": "Previna",
+  "name": "Previna-Se Gestão",
+  "short_name": "Previna-Se",
   "description": "Gestão de visitas e tarefas de segurança do trabalho",
   "start_url": "/dashboard",
   "scope": "/",

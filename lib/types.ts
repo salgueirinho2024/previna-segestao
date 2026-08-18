@@ -49,5 +49,33 @@ export type UserRow = {
   id: string;
   name: string;
   email: string;
-  role: "DONO" | "TECNICO" | "ASSISTENTE";
+  role: "TECNICO" | "ASSISTENTE";
+};
+
+export type Employee = {
+  id: string;
+  company_id: string;
+  name: string;
+  role_title: string | null;
+  admission_date: string | null;
+  notes: string | null;
+  created_at: string;
+  company_name?: string;
+};
+
+export type DocumentStatus = "OK" | "PENDENTE" | "OBSERVACAO";
+
+export type DocumentChecklistItem = {
+  id: string;
+  key: string;
+  label: string;
+  sort_order: number;
+};
+
+export type CompanyDocument = {
+  id: string;
+  company_id: string;
+  item_key: string;
+  status: DocumentStatus;
+  updated_at: string;
 };
