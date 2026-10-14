@@ -39,6 +39,10 @@ export type Task = {
   assigned_to_id: string | null;
   due_date: string | null;
   status: TaskStatus;
+  priority: "ALTA" | "MEDIA" | "BAIXA";
+  progress: number;
+  activity_type: string;
+  completed_at: string | null;
   created_by: string | null;
   created_at: string;
   company_name?: string | null;

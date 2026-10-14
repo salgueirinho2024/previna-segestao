@@ -143,7 +143,7 @@ export async function createTask(data: {
 }
 
 export async function updateTaskStatus(id: string, status: string) {
-  await sql`update tasks set status = ${status} where id = ${id}`;
+  await sql`update tasks set status = ${status}, progress = case when ${status} = 'CONCLUIDA' then 100 else progress end, completed_at = case when ${status} = 'CONCLUIDA' then now() else null end where id = ${id}`;
 }
 
 // ---------- Employees (Funcionários) ----------
@@ -247,3 +247,8 @@ export function taskUrgency(t: Task): Urgency {
   if (days <= 3) return "urgente";
   return "no-prazo";
 }
+
+export async function updateTaskDetails(id: string, data: {title:string; description:string; company_id:string|null; assigned_to_id:string|null; due_date:string|null; status:string; priority:string; progress:number; activity_type:string}) {
+  await sql`update tasks set title=${data.title}, description=${data.description}, company_id=${data.company_id}, assigned_to_id=${data.assigned_to_id}, due_date=${data.due_date}, status=${data.status}, priority=${data.priority}, progress=${data.status === 'CONCLUIDA' ? 100 : data.progress}, activity_type=${data.activity_type}, completed_at=case when ${data.status}='CONCLUIDA' then coalesce(completed_at,now()) else null end where id=${id}`;
+}
+export async function deleteTask(id:string) { await sql`delete from tasks where id=${id}`; }
