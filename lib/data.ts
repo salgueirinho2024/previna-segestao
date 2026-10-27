@@ -252,3 +252,63 @@ export async function updateTaskDetails(id: string, data: {title:string; descrip
   await sql`update tasks set title=${data.title}, description=${data.description}, company_id=${data.company_id}, assigned_to_id=${data.assigned_to_id}, due_date=${data.due_date}, status=${data.status}, priority=${data.priority}, progress=${data.status === 'CONCLUIDA' ? 100 : data.progress}, activity_type=${data.activity_type}, completed_at=case when ${data.status}='CONCLUIDA' then coalesce(completed_at,now()) else null end where id=${id}`;
 }
 export async function deleteTask(id:string) { await sql`delete from tasks where id=${id}`; }
+
+// ---------- Editar / apagar ----------
+export async function updateCompany(id: string, data: {
+  name: string;
+  cnpj?: string;
+  address?: string;
+  contact_name?: string;
+  contact_phone?: string;
+  segment?: string;
+  visit_frequency_days: number;
+  notes?: string;
+}) {
+  await sql`
+    update companies set name = ${data.name}, cnpj = ${data.cnpj || null}, address = ${data.address || null},
+      contact_name = ${data.contact_name || null}, contact_phone = ${data.contact_phone || null},
+      segment = ${data.segment || null}, visit_frequency_days = ${data.visit_frequency_days},
+      notes = ${data.notes || null}
+    where id = ${id}
+  `;
+}
+
+// Apaga a empresa e, por cascade, suas visitas, tarefas, funcionários e checklist.
+export async function deleteCompany(id: string) {
+  await sql`delete from companies where id = ${id}`;
+}
+
+export async function updateVisit(id: string, data: {
+  company_id: string;
+  title: string;
+  description?: string;
+  scheduled_date: string;
+  responsible_id?: string;
+  what_was_done?: string;
+}) {
+  await sql`
+    update visits set company_id = ${data.company_id}, title = ${data.title},
+      description = ${data.description || null}, scheduled_date = ${data.scheduled_date},
+      responsible_id = ${data.responsible_id || null}, what_was_done = ${data.what_was_done || null}
+    where id = ${id}
+  `;
+}
+
+export async function deleteVisit(id: string) {
+  await sql`delete from visits where id = ${id}`;
+}
+
+export async function updateEmployee(id: string, data: {
+  company_id: string;
+  name: string;
+  role_title?: string;
+  admission_date?: string;
+  notes?: string;
+}) {
+  await sql`
+    update employees set company_id = ${data.company_id}, name = ${data.name},
+      role_title = ${data.role_title || null}, admission_date = ${data.admission_date || null},
+      notes = ${data.notes || null}
+    where id = ${id}
+  `;
+}

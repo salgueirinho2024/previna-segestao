@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { createVisit, updateVisitStatus } from "@/lib/data";
+import { createVisit, updateVisitStatus, updateVisit, deleteVisit } from "@/lib/data";
 import { getSession } from "@/lib/auth";
 import type { FormState } from "./companies";
 
@@ -47,4 +47,41 @@ export async function updateVisitStatusAction(formData: FormData) {
   revalidatePath("/visitas");
   revalidatePath("/dashboard");
   if (companyId) revalidatePath(`/empresas/${companyId}`);
+}
+
+export async function updateVisitAction(data: {
+  id: string;
+  company_id: string;
+  title: string;
+  description: string;
+  scheduled_date: string;
+  responsible_id: string;
+  what_was_done: string;
+}): Promise<{ error?: string }> {
+  const user = await getSession();
+  if (!user) return { error: "Sessão expirada." };
+  if (!data.company_id || !data.title.trim() || !data.scheduled_date) {
+    return { error: "Preencha empresa, o que será feito e a data." };
+  }
+  try {
+    await updateVisit(data.id, { ...data, title: data.title.trim() });
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Erro ao salvar." };
+  }
+  revalidateVisit(data.company_id);
+  return {};
+}
+
+export async function deleteVisitAction(id: string, companyId: string) {
+  const user = await getSession();
+  if (!user) return;
+  await deleteVisit(id);
+  revalidateVisit(companyId);
+}
+
+function revalidateVisit(companyId: string) {
+  revalidatePath("/visitas");
+  revalidatePath("/dashboard");
+  revalidatePath("/calendario");
+  revalidatePath(`/empresas/${companyId}`);
 }

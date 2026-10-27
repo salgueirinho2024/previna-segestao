@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Plus, MapPin, Phone, User as UserIcon } from "lucide-react";
+import { ArrowLeft, Plus, MapPin, Phone, User as UserIcon, Pencil } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import UrgencyBadge from "@/components/UrgencyBadge";
 import DocStatusCell from "@/components/DocStatusCell";
@@ -9,6 +9,7 @@ import {
   listVisitsByCompany,
   listTasksByCompany,
   listUsers,
+  listCompanies,
   listDocumentChecklistItems,
   listCompanyDocumentsByCompany,
   visitUrgency,
@@ -17,6 +18,10 @@ import {
 } from "@/lib/data";
 import { formatDatePt } from "@/lib/format";
 import VisitStatusForm from "@/components/VisitStatusForm";
+import VisitActions from "@/components/VisitActions";
+import DeleteButton from "@/components/DeleteButton";
+import { deleteCompanyAction } from "@/app/actions/companies";
+import { deleteTaskAction } from "@/app/actions/tasks";
 import QuickTaskForm from "@/components/QuickTaskForm";
 import TaskStatusToggle from "@/components/TaskStatusToggle";
 import type { DocumentStatus } from "@/lib/types";
@@ -27,10 +32,11 @@ export default async function EmpresaDetailPage({ params }: { params: Promise<{ 
   const company = await getCompany(id);
   if (!company) notFound();
 
-  const [visits, tasks, users, checklistItems, companyDocs] = await Promise.all([
+  const [visits, tasks, users, companies, checklistItems, companyDocs] = await Promise.all([
     listVisitsByCompany(id),
     listTasksByCompany(id),
     listUsers(),
+    listCompanies(),
     listDocumentChecklistItems(),
     listCompanyDocumentsByCompany(id),
   ]);
@@ -48,9 +54,23 @@ export default async function EmpresaDetailPage({ params }: { params: Promise<{ 
         title={company.name}
         subtitle={company.segment || undefined}
         action={
-          <Link href="/empresas" className="flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition">
-            <ArrowLeft size={16} /> Empresas
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/empresas" className="flex items-center gap-1.5 text-sm text-muted hover:text-foreground transition">
+              <ArrowLeft size={16} /> Empresas
+            </Link>
+            <Link
+              href={`/empresas/${company.id}/editar`}
+              className="flex items-center gap-1.5 text-sm font-medium text-brand-green-dark hover:text-brand-green transition"
+            >
+              <Pencil size={14} /> Editar
+            </Link>
+            <DeleteButton
+              action={deleteCompanyAction.bind(null, company.id)}
+              message={`Apagar a empresa "${company.name}"? Todas as visitas, tarefas, funcionários e o checklist dela também serão apagados. Esta ação não pode ser desfeita.`}
+              title="Apagar empresa"
+              label="Apagar"
+            />
+          </div>
         }
       />
 
@@ -116,7 +136,10 @@ export default async function EmpresaDetailPage({ params }: { params: Promise<{ 
                           </p>
                         )}
                       </div>
-                      <UrgencyBadge urgency={visitUrgency(v)} />
+                      <div className="flex items-center gap-3 shrink-0">
+                        <UrgencyBadge urgency={visitUrgency(v)} />
+                        <VisitActions visit={v} companies={companies} users={users} />
+                      </div>
                     </div>
                     {v.status !== "CONCLUIDA" && <VisitStatusForm visit={v} />}
                   </div>
@@ -145,7 +168,17 @@ export default async function EmpresaDetailPage({ params }: { params: Promise<{ 
                         </p>
                       </div>
                     </div>
-                    <UrgencyBadge urgency={taskUrgency(t)} />
+                    <div className="flex items-center gap-3 shrink-0">
+                      <UrgencyBadge urgency={taskUrgency(t)} />
+                      <Link href="/tarefas" title="Editar na tela de Tarefas" className="text-muted hover:text-brand-green-dark transition">
+                        <Pencil size={14} />
+                      </Link>
+                      <DeleteButton
+                        action={deleteTaskAction.bind(null, t.id, company.id)}
+                        message={`Apagar a tarefa "${t.title}"?`}
+                        title="Apagar tarefa"
+                      />
+                    </div>
                   </li>
                 ))}
               </ul>

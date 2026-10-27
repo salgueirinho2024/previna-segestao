@@ -7,7 +7,8 @@ import { updateVisitStatusAction } from "@/app/actions/visits";
 import UrgencyBadge from "@/components/UrgencyBadge";
 import { visitUrgency, daysUntil } from "@/lib/data";
 import { formatDatePt } from "@/lib/format";
-import type { Visit } from "@/lib/types";
+import VisitActions from "@/components/VisitActions";
+import type { Company, UserRow, Visit } from "@/lib/types";
 
 const NEXT_STATUS: Record<string, string> = {
   AGENDADA: "EM_ANDAMENTO",
@@ -21,7 +22,7 @@ const URGENCY_BORDER: Record<string, string> = {
   concluida: "border-l-mint",
 };
 
-export default function VisitCard({ visit }: { visit: Visit }) {
+export default function VisitCard({ visit, companies, users }: { visit: Visit; companies: Company[]; users: UserRow[] }) {
   const [pending, startTransition] = useTransition();
   const [showConclude, setShowConclude] = useState(false);
   const [note, setNote] = useState("");
@@ -53,10 +54,13 @@ export default function VisitCard({ visit }: { visit: Visit }) {
 
   return (
     <div className={`rounded-lg border border-border border-l-4 ${URGENCY_BORDER[urgency]} bg-surface p-3.5 shadow-[0_1px_2px_rgba(15,46,29,0.04)]`}>
-      <Link href={`/empresas/${visit.company_id}`} className="block">
-        <p className="text-sm font-medium text-foreground hover:text-brand-green-dark transition">{visit.company_name}</p>
-        <p className="text-xs text-muted mt-0.5">{visit.title}</p>
-      </Link>
+      <div className="flex items-start justify-between gap-2">
+        <Link href={`/empresas/${visit.company_id}`} className="block min-w-0">
+          <p className="text-sm font-medium text-foreground hover:text-brand-green-dark transition">{visit.company_name}</p>
+          <p className="text-xs text-muted mt-0.5">{visit.title}</p>
+        </Link>
+        <VisitActions visit={visit} companies={companies} users={users} />
+      </div>
 
       <div className="flex items-center justify-between mt-3">
         <span className="text-[11px] font-mono-ui text-muted">

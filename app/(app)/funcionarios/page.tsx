@@ -1,8 +1,7 @@
 import PageHeader from "@/components/PageHeader";
 import NewEmployeeForm from "@/components/NewEmployeeForm";
-import DeleteEmployeeButton from "@/components/DeleteEmployeeButton";
+import EmployeeRow from "@/components/EmployeeRow";
 import { listCompanies, listEmployees } from "@/lib/data";
-import { formatDatePt } from "@/lib/format";
 
 export default async function FuncionariosPage() {
   let companies: Awaited<ReturnType<typeof listCompanies>> = [];
@@ -47,16 +46,7 @@ export default async function FuncionariosPage() {
                 <h2 className="font-display text-base text-pine mb-3">{c.name}</h2>
                 <div className="rounded-xl border border-border bg-surface divide-y divide-border overflow-hidden">
                   {(byCompany.get(c.id) ?? []).map((e) => (
-                    <div key={e.id} className="flex items-center justify-between gap-4 px-5 py-3.5">
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{e.name}</p>
-                        <p className="text-xs text-muted truncate">
-                          {e.role_title || "Cargo não informado"}
-                          {e.admission_date ? ` · admitido em ${formatDatePt(e.admission_date)}` : ""}
-                        </p>
-                      </div>
-                      <DeleteEmployeeButton id={e.id} />
-                    </div>
+                    <EmployeeRow key={e.id} employee={e} companies={companies} />
                   ))}
                 </div>
               </section>

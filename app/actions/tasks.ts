@@ -61,3 +61,11 @@ export async function deleteActivityAction(id:string) {
   const user=await getSession();if(!user) throw new Error('Sessão expirada');
   await deleteTask(id);revalidatePath('/tarefas');revalidatePath('/calendario');revalidatePath('/dashboard');
 }
+
+export async function deleteTaskAction(id: string, companyId?: string) {
+  const user = await getSession();
+  if (!user) return;
+  await deleteTask(id);
+  revalidatePath('/tarefas'); revalidatePath('/calendario'); revalidatePath('/dashboard');
+  if (companyId) revalidatePath(`/empresas/${companyId}`);
+}

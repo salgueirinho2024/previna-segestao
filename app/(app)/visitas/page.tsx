@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import VisitCard from "@/components/VisitCard";
-import { listVisits } from "@/lib/data";
+import { listVisits, listCompanies, listUsers } from "@/lib/data";
 
 const COLUMNS = [
   { key: "AGENDADA", label: "Agendadas" },
@@ -12,10 +12,12 @@ const COLUMNS = [
 
 export default async function VisitasPage() {
   let visits: Awaited<ReturnType<typeof listVisits>> = [];
+  let companies: Awaited<ReturnType<typeof listCompanies>> = [];
+  let users: Awaited<ReturnType<typeof listUsers>> = [];
   let dbError: string | null = null;
 
   try {
-    visits = await listVisits();
+    [visits, companies, users] = await Promise.all([listVisits(), listCompanies(), listUsers()]);
   } catch (e) {
     dbError = e instanceof Error ? e.message : "Erro ao carregar dados.";
   }
@@ -56,7 +58,7 @@ export default async function VisitasPage() {
                     {items.length === 0 ? (
                       <p className="text-xs text-muted text-center py-8">Nenhuma visita aqui</p>
                     ) : (
-                      items.map((v) => <VisitCard key={v.id} visit={v} />)
+                      items.map((v) => <VisitCard key={v.id} visit={v} companies={companies} users={users} />)
                     )}
                   </div>
                 </div>

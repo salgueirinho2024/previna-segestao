@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createEmployee, deleteEmployee } from "@/lib/data";
+import { createEmployee, deleteEmployee, updateEmployee } from "@/lib/data";
 import { getSession } from "@/lib/auth";
 
 export type FormState = { error?: string };
@@ -36,4 +36,25 @@ export async function deleteEmployeeAction(id: string) {
   if (!user) return;
   await deleteEmployee(id);
   revalidatePath("/funcionarios");
+}
+
+export async function updateEmployeeAction(data: {
+  id: string;
+  company_id: string;
+  name: string;
+  role_title: string;
+  admission_date: string;
+}): Promise<FormState> {
+  const user = await getSession();
+  if (!user) return { error: "Sessão expirada." };
+  if (!data.company_id) return { error: "Selecione a empresa." };
+  if (!data.name.trim()) return { error: "Informe o nome do funcionário." };
+  try {
+    await updateEmployee(data.id, { ...data, name: data.name.trim() });
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Erro ao salvar." };
+  }
+  revalidatePath("/funcionarios");
+  revalidatePath(`/empresas/${data.company_id}`);
+  return {};
 }
