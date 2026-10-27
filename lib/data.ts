@@ -7,7 +7,6 @@ import type {
   Employee,
   DocumentChecklistItem,
   CompanyDocument,
-  DocumentStatus,
 } from "./types";
 
 // ---------- Users ----------
@@ -191,33 +190,38 @@ export async function listDocumentChecklistItems(): Promise<DocumentChecklistIte
 }
 
 export async function listCompanyDocuments(): Promise<CompanyDocument[]> {
-  const rows = await sql`select * from company_documents`;
+  const rows = await sql`select
+    id, company_id, item_key,
+    to_char(elaboration_date, 'YYYY-MM-DD') as elaboration_date,
+    to_char(expiry_date, 'YYYY-MM-DD') as expiry_date,
+    updated_at
+    from company_documents`;
   return rows as CompanyDocument[];
 }
 
 export async function listCompanyDocumentsByCompany(companyId: string): Promise<CompanyDocument[]> {
-  const rows = await sql`select * from company_documents where company_id = ${companyId}`;
+  const rows = await sql`select
+    id, company_id, item_key,
+    to_char(elaboration_date, 'YYYY-MM-DD') as elaboration_date,
+    to_char(expiry_date, 'YYYY-MM-DD') as expiry_date,
+    updated_at
+    from company_documents where company_id = ${companyId}`;
   return rows as CompanyDocument[];
 }
 
-const NEXT_STATUS: Record<DocumentStatus, DocumentStatus> = {
-  PENDENTE: "OK",
-  OK: "OBSERVACAO",
-  OBSERVACAO: "PENDENTE",
-};
-
-export async function cycleCompanyDocumentStatus(companyId: string, itemKey: string) {
-  const rows = await sql`
-    select status from company_documents where company_id = ${companyId} and item_key = ${itemKey} limit 1
-  `;
-  const current = (rows[0]?.status as DocumentStatus) ?? "PENDENTE";
-  const next = NEXT_STATUS[current];
+// Grava (ou limpa) as datas de elaboração e vencimento de um documento de uma empresa.
+export async function saveCompanyDocumentDates(
+  companyId: string,
+  itemKey: string,
+  elaborationDate: string | null,
+  expiryDate: string | null
+) {
   await sql`
-    insert into company_documents (company_id, item_key, status, updated_at)
-    values (${companyId}, ${itemKey}, ${next}, now())
-    on conflict (company_id, item_key) do update set status = ${next}, updated_at = now()
+    insert into company_documents (company_id, item_key, elaboration_date, expiry_date, updated_at)
+    values (${companyId}, ${itemKey}, ${elaborationDate}, ${expiryDate}, now())
+    on conflict (company_id, item_key) do update
+      set elaboration_date = ${elaborationDate}, expiry_date = ${expiryDate}, updated_at = now()
   `;
-  return next;
 }
 
 // ---------- Urgency helpers ----------

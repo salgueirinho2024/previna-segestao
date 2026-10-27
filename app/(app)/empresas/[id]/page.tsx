@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, Plus, MapPin, Phone, User as UserIcon, Pencil } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import UrgencyBadge from "@/components/UrgencyBadge";
-import DocStatusCell from "@/components/DocStatusCell";
+import DocDateCell from "@/components/DocDateCell";
 import {
   getCompany,
   listVisitsByCompany,
@@ -24,7 +24,6 @@ import { deleteCompanyAction } from "@/app/actions/companies";
 import { deleteTaskAction } from "@/app/actions/tasks";
 import QuickTaskForm from "@/components/QuickTaskForm";
 import TaskStatusToggle from "@/components/TaskStatusToggle";
-import type { DocumentStatus } from "@/lib/types";
 
 export default async function EmpresaDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -41,8 +40,8 @@ export default async function EmpresaDetailPage({ params }: { params: Promise<{ 
     listCompanyDocumentsByCompany(id),
   ]);
 
-  const docStatusMap = new Map<string, DocumentStatus>();
-  for (const d of companyDocs) docStatusMap.set(d.item_key, d.status);
+  const docMap = new Map<string, (typeof companyDocs)[number]>();
+  for (const d of companyDocs) docMap.set(d.item_key, d);
 
   const nextVisit = visits
     .filter((v) => v.status !== "CONCLUIDA")
@@ -197,10 +196,14 @@ export default async function EmpresaDetailPage({ params }: { params: Promise<{ 
               {checklistItems.map((item) => (
                 <div key={item.id} className="flex items-center justify-between gap-4 px-5 py-2.5">
                   <p className="text-sm text-foreground">{item.label}</p>
-                  <DocStatusCell
+                  <DocDateCell
+                    variant="row"
                     companyId={company.id}
+                    companyName={company.name}
                     itemKey={item.key}
-                    status={docStatusMap.get(item.key) ?? "PENDENTE"}
+                    label={item.label}
+                    elaborationDate={docMap.get(item.key)?.elaboration_date ?? null}
+                    expiryDate={docMap.get(item.key)?.expiry_date ?? null}
                   />
                 </div>
               ))}

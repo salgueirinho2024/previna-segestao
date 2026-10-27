@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AlertTriangle, Clock3, ClipboardList, Building2 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import UrgencyBadge from "@/components/UrgencyBadge";
+import UpdateBanner from "@/components/UpdateBanner";
 import { getSession } from "@/lib/auth";
 import {
   listVisits,
@@ -14,7 +15,7 @@ import {
   daysUntil,
 } from "@/lib/data";
 import { formatDatePt } from "@/lib/format";
-import type { DocumentStatus } from "@/lib/types";
+import { documentStatus, isDocumentPending } from "@/lib/doc-status";
 
 export default async function DashboardPage() {
   const user = await getSession();
@@ -54,16 +55,22 @@ export default async function DashboardPage() {
 
   const highPriorityOpenTasks = tasks.filter((t) => t.status !== "CONCLUIDA" && taskUrgency(t) !== "no-prazo").length;
 
-  const docStatusMap = new Map<string, DocumentStatus>();
-  for (const d of companyDocs) docStatusMap.set(`${d.company_id}:${d.item_key}`, d.status);
-  const pendingDocsCount = companies.length * checklistItems.length
-    ? companies.reduce((acc, c) => {
-        const missing = checklistItems.filter(
-          (item) => (docStatusMap.get(`${c.id}:${item.key}`) ?? "PENDENTE") === "PENDENTE"
-        ).length;
-        return acc + missing;
-      }, 0)
-    : 0;
+  const docMap = new Map<string, (typeof companyDocs)[number]>();
+  for (const d of companyDocs) docMap.set(`${d.company_id}:${d.item_key}`, d);
+
+  function companyDocCounts(companyId: string) {
+    let pending = 0;
+    let expiring = 0;
+    for (const item of checklistItems) {
+      const d = docMap.get(`${companyId}:${item.key}`);
+      const st = documentStatus(d?.elaboration_date, d?.expiry_date);
+      if (isDocumentPending(st)) pending++;
+      else if (st === "A_VENCER") expiring++;
+    }
+    return { pending, expiring };
+  }
+
+  const pendingDocsCount = companies.reduce((acc, c) => acc + companyDocCounts(c.id).pending, 0);
 
   const visitsThisMonth = visits.filter((v) => {
     if (v.status !== "CONCLUIDA" || !v.completed_date) return false;
@@ -78,10 +85,8 @@ export default async function DashboardPage() {
       .filter((v) => v.company_id === c.id)
       .sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date));
     const nextVisit = companyVisits[0];
-    const missingDocs = checklistItems.filter(
-      (item) => (docStatusMap.get(`${c.id}:${item.key}`) ?? "PENDENTE") === "PENDENTE"
-    ).length;
-    return { company: c, nextVisit, missingDocs };
+    const { pending: missingDocs, expiring: expiringDocs } = companyDocCounts(c.id);
+    return { company: c, nextVisit, missingDocs, expiringDocs };
   });
 
   return (
@@ -89,6 +94,14 @@ export default async function DashboardPage() {
       <PageHeader title={`Olá, ${user.name.split(" ")[0]}`} subtitle="Aqui está o panorama de hoje" />
 
       <div className="p-8 space-y-8">
+        <UpdateBanner>
+          <p className="font-medium">O sistema foi atualizado!</p>
+          <p className="text-pine/80 mt-0.5">
+            O checklist de documentos agora usa data de elaboração e data de vencimento. Clique em um documento para
+            informar as datas — o status (em dia, a vencer, vencido) é calculado automaticamente.
+          </p>
+        </UpdateBanner>
+
         {dbError && (
           <div className="rounded-xl border border-amber/40 bg-amber/10 text-amber-deep text-sm px-4 py-3">
             Não foi possível conectar ao banco de dados ainda ({dbError}). Configure{" "}
@@ -101,7 +114,7 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <KpiCard icon={Building2} label="Empresas ativas" value={companies.length} tone="green" />
           <KpiCard icon={ClipboardList} label="Atividades pendentes (alta prioridade)" value={highPriorityOpenTasks} tone="danger" />
-          <KpiCard icon={AlertTriangle} label="Documentos pendentes" value={pendingDocsCount} tone="amber" />
+          <KpiCard icon={AlertTriangle} label="Documentos pendentes ou vencidos" value={pendingDocsCount} tone="amber" />
           <KpiCard icon={Clock3} label="Visitas realizadas este mês" value={visitsThisMonth} tone="green" />
         </div>
 
@@ -124,11 +137,11 @@ export default async function DashboardPage() {
                       <th className="font-medium text-xs uppercase tracking-wide text-muted px-4 py-3">Empresa</th>
                       <th className="font-medium text-xs uppercase tracking-wide text-muted px-4 py-3">Próxima visita</th>
                       <th className="font-medium text-xs uppercase tracking-wide text-muted px-4 py-3">Status</th>
-                      <th className="font-medium text-xs uppercase tracking-wide text-muted px-4 py-3">Documentos pendentes</th>
+                      <th className="font-medium text-xs uppercase tracking-wide text-muted px-4 py-3">Documentos</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {monitoring.map(({ company, nextVisit, missingDocs }) => (
+                    {monitoring.map(({ company, nextVisit, missingDocs, expiringDocs }) => (
                       <tr key={company.id} className="hover:bg-background transition">
                         <td className="px-4 py-3">
                           <Link href={`/empresas/${company.id}`} className="text-sm font-medium text-foreground hover:text-brand-green-dark">
@@ -148,12 +161,18 @@ export default async function DashboardPage() {
                         <td className="px-4 py-3">
                           <span
                             className={`text-xs font-medium px-2 py-1 rounded-full ${
-                              missingDocs === 0
-                                ? "bg-brand-green/10 text-brand-green-dark"
-                                : "bg-danger/10 text-danger"
+                              missingDocs > 0
+                                ? "bg-danger/10 text-danger"
+                                : expiringDocs > 0
+                                  ? "bg-amber/15 text-amber-deep"
+                                  : "bg-brand-green/10 text-brand-green-dark"
                             }`}
                           >
-                            {missingDocs === 0 ? "Completo" : `${missingDocs} pendente(s)`}
+                            {missingDocs > 0
+                              ? `${missingDocs} pendente(s)`
+                              : expiringDocs > 0
+                                ? `${expiringDocs} a vencer`
+                                : "Em dia"}
                           </span>
                         </td>
                       </tr>

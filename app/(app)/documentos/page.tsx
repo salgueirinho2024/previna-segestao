@@ -1,7 +1,6 @@
 import PageHeader from "@/components/PageHeader";
-import DocStatusCell from "@/components/DocStatusCell";
+import DocDateCell from "@/components/DocDateCell";
 import { listCompanies, listDocumentChecklistItems, listCompanyDocuments } from "@/lib/data";
-import type { DocumentStatus } from "@/lib/types";
 
 export default async function DocumentosPage() {
   let companies: Awaited<ReturnType<typeof listCompanies>> = [];
@@ -19,12 +18,12 @@ export default async function DocumentosPage() {
     dbError = e instanceof Error ? e.message : "Erro ao carregar dados.";
   }
 
-  const statusMap = new Map<string, DocumentStatus>();
-  for (const d of docs) statusMap.set(`${d.company_id}:${d.item_key}`, d.status);
+  const docMap = new Map<string, (typeof docs)[number]>();
+  for (const d of docs) docMap.set(`${d.company_id}:${d.item_key}`, d);
 
   return (
     <div>
-      <PageHeader title="Documentos" subtitle="Checklist de documentação por empresa — clique para alternar o status" />
+      <PageHeader title="Documentos" subtitle="Checklist de documentação por empresa — clique para informar elaboração e vencimento" />
 
       <div className="p-8 space-y-4">
         {dbError && (
@@ -33,16 +32,20 @@ export default async function DocumentosPage() {
           </div>
         )}
 
-        <div className="flex items-center gap-5 text-xs text-muted">
+        <div className="flex flex-wrap items-center gap-5 text-xs text-muted">
           <span className="flex items-center gap-1.5">
-            <span className="w-3.5 h-3.5 rounded bg-brand-green/25 inline-block" /> OK
+            <span className="w-3.5 h-3.5 rounded bg-brand-green/25 inline-block" /> Em dia
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-3.5 h-3.5 rounded bg-danger/25 inline-block" /> Pendente
+            <span className="w-3.5 h-3.5 rounded bg-amber/30 inline-block" /> A vencer (até 30 dias)
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-3.5 h-3.5 rounded bg-sky-200 inline-block" /> Observação
+            <span className="w-3.5 h-3.5 rounded bg-danger/25 inline-block" /> Vencido
           </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-3.5 h-3.5 rounded bg-black/10 inline-block" /> Sem data
+          </span>
+          <span className="text-muted/80">A data exibida em cada célula é o vencimento.</span>
         </div>
 
         {companies.length === 0 ? (
@@ -60,7 +63,7 @@ export default async function DocumentosPage() {
                   {items.map((item) => (
                     <th
                       key={item.id}
-                      className="text-center font-medium text-xs text-muted px-2 py-3 min-w-[64px] align-bottom"
+                      className="text-center font-medium text-xs text-muted px-2 py-3 min-w-[88px] align-bottom"
                     >
                       <span className="block [writing-mode:vertical-rl] rotate-180 whitespace-nowrap">
                         {item.label}
@@ -77,10 +80,13 @@ export default async function DocumentosPage() {
                     </td>
                     {items.map((item) => (
                       <td key={item.id} className="text-center px-2 py-2.5">
-                        <DocStatusCell
+                        <DocDateCell
                           companyId={c.id}
+                          companyName={c.name}
                           itemKey={item.key}
-                          status={statusMap.get(`${c.id}:${item.key}`) ?? "PENDENTE"}
+                          label={item.label}
+                          elaborationDate={docMap.get(`${c.id}:${item.key}`)?.elaboration_date ?? null}
+                          expiryDate={docMap.get(`${c.id}:${item.key}`)?.expiry_date ?? null}
                         />
                       </td>
                     ))}
