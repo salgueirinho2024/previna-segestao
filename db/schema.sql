@@ -82,6 +82,7 @@ create table if not exists company_documents (
   item_key     text not null references document_checklist_items(key) on delete cascade,
   elaboration_date date,
   expiry_date      date,
+  status       text not null default 'PENDENTE' check (status in ('PENDENTE','EM_ANDAMENTO','FEITO','OBSERVACAO')),
   updated_at   timestamptz not null default now(),
   unique (company_id, item_key)
 );

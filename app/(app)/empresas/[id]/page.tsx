@@ -202,6 +202,7 @@ export default async function EmpresaDetailPage({ params }: { params: Promise<{ 
                     companyName={company.name}
                     itemKey={item.key}
                     label={item.label}
+                    workStatus={docMap.get(item.key)?.status ?? "PENDENTE"}
                     elaborationDate={docMap.get(item.key)?.elaboration_date ?? null}
                     expiryDate={docMap.get(item.key)?.expiry_date ?? null}
                   />

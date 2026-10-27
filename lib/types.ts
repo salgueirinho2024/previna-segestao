@@ -70,6 +70,9 @@ export type Employee = {
 // Status calculado a partir das datas (não é mais gravado no banco)
 export type DocumentStatus = "SEM_DATA" | "EM_DIA" | "A_VENCER" | "VENCIDO";
 
+// Andamento do documento, marcado manualmente (independe das datas)
+export type DocumentWorkStatus = "PENDENTE" | "EM_ANDAMENTO" | "FEITO" | "OBSERVACAO";
+
 export type DocumentChecklistItem = {
   id: string;
   key: string;
@@ -81,6 +84,7 @@ export type CompanyDocument = {
   id: string;
   company_id: string;
   item_key: string;
+  status: DocumentWorkStatus;
   elaboration_date: string | null; // YYYY-MM-DD
   expiry_date: string | null; // YYYY-MM-DD
   updated_at: string;

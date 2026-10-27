@@ -1,4 +1,4 @@
-import type { DocumentStatus } from "./types";
+import type { DocumentStatus, DocumentWorkStatus } from "./types";
 
 // Quantos dias antes do vencimento o documento passa a ser "A vencer".
 export const DOC_WARNING_DAYS = 30;
@@ -29,10 +29,19 @@ export function documentStatus(
   return "SEM_DATA";
 }
 
-// Documentos que precisam de atenção: sem data (não elaborado) ou vencidos.
-export function isDocumentPending(status: DocumentStatus): boolean {
-  return status === "SEM_DATA" || status === "VENCIDO";
+// Documento que precisa de atenção: ainda não feito (pendente/em andamento) ou com o prazo vencido.
+export function isDocumentPending(work: DocumentWorkStatus, dateStatus: DocumentStatus): boolean {
+  return dateStatus === "VENCIDO" || work === "PENDENTE" || work === "EM_ANDAMENTO";
 }
+
+export const DOC_WORK_STATUSES: DocumentWorkStatus[] = ["PENDENTE", "EM_ANDAMENTO", "FEITO", "OBSERVACAO"];
+
+export const DOC_WORK_LABEL: Record<DocumentWorkStatus, string> = {
+  PENDENTE: "Pendente",
+  EM_ANDAMENTO: "Em andamento",
+  FEITO: "Feito",
+  OBSERVACAO: "Observação",
+};
 
 export function formatDateBr(dateStr: string | null | undefined): string {
   if (!dateStr) return "—";

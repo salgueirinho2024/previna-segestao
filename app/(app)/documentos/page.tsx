@@ -23,7 +23,7 @@ export default async function DocumentosPage() {
 
   return (
     <div>
-      <PageHeader title="Documentos" subtitle="Checklist de documentação por empresa — clique para informar elaboração e vencimento" />
+      <PageHeader title="Documentos" subtitle="Checklist de documentação por empresa — clique para marcar o status e informar elaboração e vencimento" />
 
       <div className="p-8 space-y-4">
         {dbError && (
@@ -32,9 +32,18 @@ export default async function DocumentosPage() {
           </div>
         )}
 
-        <div className="flex flex-wrap items-center gap-5 text-xs text-muted">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted">
           <span className="flex items-center gap-1.5">
-            <span className="w-3.5 h-3.5 rounded bg-brand-green/25 inline-block" /> Em dia
+            <span className="w-3.5 h-3.5 rounded bg-brand-green/25 inline-block" /> Feito
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-3.5 h-3.5 rounded bg-sky-500/25 inline-block" /> Em andamento
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-3.5 h-3.5 rounded bg-violet-500/25 inline-block" /> Observação
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-3.5 h-3.5 rounded bg-black/10 inline-block" /> Pendente
           </span>
           <span className="flex items-center gap-1.5">
             <span className="w-3.5 h-3.5 rounded bg-amber/30 inline-block" /> A vencer (até 30 dias)
@@ -42,10 +51,7 @@ export default async function DocumentosPage() {
           <span className="flex items-center gap-1.5">
             <span className="w-3.5 h-3.5 rounded bg-danger/25 inline-block" /> Vencido
           </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-3.5 h-3.5 rounded bg-black/10 inline-block" /> Sem data
-          </span>
-          <span className="text-muted/80">A data exibida em cada célula é o vencimento.</span>
+          <span className="text-muted/80">A data em cada célula é o vencimento; prazo vencido ou a vencer sobrepõe a cor do status.</span>
         </div>
 
         {companies.length === 0 ? (
@@ -85,6 +91,7 @@ export default async function DocumentosPage() {
                           companyName={c.name}
                           itemKey={item.key}
                           label={item.label}
+                          workStatus={docMap.get(`${c.id}:${item.key}`)?.status ?? "PENDENTE"}
                           elaborationDate={docMap.get(`${c.id}:${item.key}`)?.elaboration_date ?? null}
                           expiryDate={docMap.get(`${c.id}:${item.key}`)?.expiry_date ?? null}
                         />

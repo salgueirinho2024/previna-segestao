@@ -7,6 +7,7 @@ import type {
   Employee,
   DocumentChecklistItem,
   CompanyDocument,
+  DocumentWorkStatus,
 } from "./types";
 
 // ---------- Users ----------
@@ -191,7 +192,7 @@ export async function listDocumentChecklistItems(): Promise<DocumentChecklistIte
 
 export async function listCompanyDocuments(): Promise<CompanyDocument[]> {
   const rows = await sql`select
-    id, company_id, item_key,
+    id, company_id, item_key, status,
     to_char(elaboration_date, 'YYYY-MM-DD') as elaboration_date,
     to_char(expiry_date, 'YYYY-MM-DD') as expiry_date,
     updated_at
@@ -201,7 +202,7 @@ export async function listCompanyDocuments(): Promise<CompanyDocument[]> {
 
 export async function listCompanyDocumentsByCompany(companyId: string): Promise<CompanyDocument[]> {
   const rows = await sql`select
-    id, company_id, item_key,
+    id, company_id, item_key, status,
     to_char(elaboration_date, 'YYYY-MM-DD') as elaboration_date,
     to_char(expiry_date, 'YYYY-MM-DD') as expiry_date,
     updated_at
@@ -209,18 +210,19 @@ export async function listCompanyDocumentsByCompany(companyId: string): Promise<
   return rows as CompanyDocument[];
 }
 
-// Grava (ou limpa) as datas de elaboração e vencimento de um documento de uma empresa.
-export async function saveCompanyDocumentDates(
+// Grava o status e as datas de elaboração e vencimento de um documento de uma empresa.
+export async function saveCompanyDocument(
   companyId: string,
   itemKey: string,
+  status: DocumentWorkStatus,
   elaborationDate: string | null,
   expiryDate: string | null
 ) {
   await sql`
-    insert into company_documents (company_id, item_key, elaboration_date, expiry_date, updated_at)
-    values (${companyId}, ${itemKey}, ${elaborationDate}, ${expiryDate}, now())
+    insert into company_documents (company_id, item_key, status, elaboration_date, expiry_date, updated_at)
+    values (${companyId}, ${itemKey}, ${status}, ${elaborationDate}, ${expiryDate}, now())
     on conflict (company_id, item_key) do update
-      set elaboration_date = ${elaborationDate}, expiry_date = ${expiryDate}, updated_at = now()
+      set status = ${status}, elaboration_date = ${elaborationDate}, expiry_date = ${expiryDate}, updated_at = now()
   `;
 }
 

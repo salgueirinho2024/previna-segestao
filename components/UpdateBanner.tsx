@@ -4,7 +4,7 @@ import { useState, useSyncExternalStore } from "react";
 import { Sparkles, X } from "lucide-react";
 
 // Mude esta chave a cada nova atualização para o aviso voltar a aparecer para todos.
-const UPDATE_KEY = "update-banner-2026-10-27";
+const UPDATE_KEY = "update-banner-2026-10-27-status";
 
 function subscribe(cb: () => void) {
   window.addEventListener("storage", cb);

@@ -64,7 +64,7 @@ export default async function DashboardPage() {
     for (const item of checklistItems) {
       const d = docMap.get(`${companyId}:${item.key}`);
       const st = documentStatus(d?.elaboration_date, d?.expiry_date);
-      if (isDocumentPending(st)) pending++;
+      if (isDocumentPending(d?.status ?? "PENDENTE", st)) pending++;
       else if (st === "A_VENCER") expiring++;
     }
     return { pending, expiring };
@@ -97,8 +97,9 @@ export default async function DashboardPage() {
         <UpdateBanner>
           <p className="font-medium">O sistema foi atualizado!</p>
           <p className="text-pine/80 mt-0.5">
-            O checklist de documentos agora usa data de elaboração e data de vencimento. Clique em um documento para
-            informar as datas — o status (em dia, a vencer, vencido) é calculado automaticamente.
+            O checklist de documentos voltou a ter o status (pendente, em andamento, feito, observação), junto com a
+            data de elaboração e a de vencimento. Clique em um documento para marcar o status e informar as datas —
+            vencido e a vencer continuam sendo calculados automaticamente.
           </p>
         </UpdateBanner>
 
