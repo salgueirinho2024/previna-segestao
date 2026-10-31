@@ -56,7 +56,12 @@ export async function listVisits(): Promise<Visit[]> {
     left join users u on u.id = v.responsible_id
     order by v.scheduled_date asc
   `;
-  return rows as Visit[];
+  return rows.map((row) => ({
+    ...row,
+    scheduled_date: row.scheduled_date instanceof Date
+      ? row.scheduled_date.toISOString().slice(0, 10)
+      : String(row.scheduled_date).slice(0, 10),
+  })) as Visit[];
 }
 
 export async function listVisitsByCompany(companyId: string): Promise<Visit[]> {
@@ -68,7 +73,12 @@ export async function listVisitsByCompany(companyId: string): Promise<Visit[]> {
     where v.company_id = ${companyId}
     order by v.scheduled_date desc
   `;
-  return rows as Visit[];
+  return rows.map((row) => ({
+    ...row,
+    scheduled_date: row.scheduled_date instanceof Date
+      ? row.scheduled_date.toISOString().slice(0, 10)
+      : String(row.scheduled_date).slice(0, 10),
+  })) as Visit[];
 }
 
 export async function createVisit(data: {
