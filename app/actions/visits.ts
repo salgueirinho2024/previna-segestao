@@ -33,7 +33,7 @@ export async function createVisitAction(_prev: FormState, formData: FormData): P
 
   revalidatePath("/visitas");
   revalidatePath(`/empresas/${company_id}`);
-  redirect(`/empresas/${company_id}`);
+  redirect("/visitas");
 }
 
 export async function updateVisitStatusAction(formData: FormData) {

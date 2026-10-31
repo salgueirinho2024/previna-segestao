@@ -1,9 +1,12 @@
+import ListSearch from "@/components/ListSearch";
 import Link from "next/link";
 import { Plus, Building2 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import { listCompanies, listVisits, visitUrgency } from "@/lib/data";
 
-export default async function EmpresasPage() {
+export default async function EmpresasPage({searchParams}:{searchParams:Promise<{q?:string}>}) {
+  const {q=""}=await searchParams;
+  const search=q.trim().toLocaleLowerCase("pt-BR");
   let companies: Awaited<ReturnType<typeof listCompanies>> = [];
   let visits: Awaited<ReturnType<typeof listVisits>> = [];
   let dbError: string | null = null;
@@ -30,6 +33,7 @@ export default async function EmpresasPage() {
       />
 
       <div className="p-8">
+        <ListSearch placeholder="Buscar empresa, CNPJ, contato ou segmento..."/>
         {dbError && (
           <div className="rounded-xl border border-amber/40 bg-amber/10 text-amber-deep text-sm px-4 py-3 mb-6">
             Banco ainda não configurado ({dbError}).
@@ -49,7 +53,7 @@ export default async function EmpresasPage() {
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-4">
-            {companies.map((c) => {
+            {companies.filter(c=>!search||`${c.name} ${c.cnpj||""} ${c.contact_name||""} ${c.segment||""}`.toLocaleLowerCase("pt-BR").includes(search)).map((c) => {
               const companyVisits = visits.filter((v) => v.company_id === c.id && v.status !== "CONCLUIDA");
               const nextVisit = companyVisits.sort((a, b) => a.scheduled_date.localeCompare(b.scheduled_date))[0];
               const urgency = nextVisit ? visitUrgency(nextVisit) : null;

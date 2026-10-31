@@ -1,8 +1,11 @@
+import ListSearch from "@/components/ListSearch";
 import PageHeader from "@/components/PageHeader";
 import DocDateCell from "@/components/DocDateCell";
 import { listCompanies, listDocumentChecklistItems, listCompanyDocuments } from "@/lib/data";
 
-export default async function DocumentosPage() {
+export default async function DocumentosPage({searchParams}:{searchParams:Promise<{q?:string}>}) {
+  const {q=""}=await searchParams;
+  const search=q.trim().toLocaleLowerCase("pt-BR");
   let companies: Awaited<ReturnType<typeof listCompanies>> = [];
   let items: Awaited<ReturnType<typeof listDocumentChecklistItems>> = [];
   let docs: Awaited<ReturnType<typeof listCompanyDocuments>> = [];
@@ -26,6 +29,7 @@ export default async function DocumentosPage() {
       <PageHeader title="Documentos" subtitle="Checklist de documentação por empresa — clique para marcar o status e informar elaboração e vencimento" />
 
       <div className="p-8 space-y-4">
+        <ListSearch placeholder="Buscar empresa no checklist de documentos..."/>
         {dbError && (
           <div className="rounded-xl border border-amber/40 bg-amber/10 text-amber-deep text-sm px-4 py-3">
             Não foi possível conectar ao banco de dados ({dbError}).
@@ -79,7 +83,7 @@ export default async function DocumentosPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {companies.map((c) => (
+                {companies.filter(c=>!search||`${c.name} ${c.cnpj||""}`.toLocaleLowerCase("pt-BR").includes(search)).map((c) => (
                   <tr key={c.id}>
                     <td className="sticky left-0 bg-surface text-sm font-medium text-foreground px-4 py-2.5 whitespace-nowrap">
                       {c.name}
